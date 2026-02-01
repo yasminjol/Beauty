@@ -2,7 +2,7 @@
 import "react-native-reanimated";
 import React, { useEffect } from "react";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SystemBars } from "react-native-edge-to-edge";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -16,14 +16,73 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
-// Note: Error logging is auto-initialized via index.ts import
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  initialRouteName: "(tabs)", // Ensure any route can link back to `/`
+  initialRouteName: "auth/role-selection",
 };
+
+function RootLayoutNav() {
+  const { user, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+    const inOnboardingGroup = segments[0] === 'onboarding';
+
+    console.log('Navigation check - User:', user?.email, 'Onboarding:', user?.onboardingComplete, 'Segments:', segments);
+
+    if (!user) {
+      // User not authenticated - redirect to auth
+      if (!inAuthGroup) {
+        console.log('Redirecting to role selection - no user');
+        router.replace('/auth/role-selection');
+      }
+    } else if (!user.onboardingComplete) {
+      // User authenticated but onboarding not complete
+      if (!inOnboardingGroup) {
+        console.log('Redirecting to onboarding - user not onboarded');
+        if (user.role === 'client') {
+          router.replace('/onboarding/client-name');
+        } else {
+          router.replace('/onboarding/provider-name');
+        }
+      }
+    } else {
+      // User authenticated and onboarded - redirect to appropriate dashboard
+      if (inAuthGroup || inOnboardingGroup) {
+        console.log('Redirecting to dashboard - user authenticated and onboarded');
+        if (user.role === 'client') {
+          router.replace('/(tabs)/(home)/');
+        } else {
+          router.replace('/(provider-tabs)/dashboard');
+        }
+      }
+    }
+  }, [user, isLoading, segments, router]);
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="auth/role-selection" />
+      <Stack.Screen name="auth/sign-in" />
+      <Stack.Screen name="auth/otp-verification" />
+      <Stack.Screen name="onboarding/client-name" />
+      <Stack.Screen name="onboarding/client-preferences" />
+      <Stack.Screen name="onboarding/provider-name" />
+      <Stack.Screen name="onboarding/provider-address" />
+      <Stack.Screen name="onboarding/provider-categories" />
+      <Stack.Screen name="onboarding/provider-verification" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="(provider-tabs)" />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -43,10 +102,7 @@ export default function RootLayout() {
       !networkState.isConnected &&
       networkState.isInternetReachable === false
     ) {
-      Alert.alert(
-        "🔌 You are offline",
-        "You can keep using the app! Your changes will be saved locally and synced when you are back online."
-      );
+      console.warn("🔌 You are offline - changes will be saved locally");
     }
   }, [networkState.isConnected, networkState.isInternetReachable]);
 
@@ -58,44 +114,42 @@ export default function RootLayout() {
     ...DefaultTheme,
     dark: false,
     colors: {
-      primary: "rgb(0, 122, 255)", // System Blue
-      background: "rgb(242, 242, 247)", // Light mode background
-      card: "rgb(255, 255, 255)", // White cards/surfaces
-      text: "rgb(0, 0, 0)", // Black text for light mode
-      border: "rgb(216, 216, 220)", // Light gray for separators/borders
-      notification: "rgb(255, 59, 48)", // System Red
+      primary: "rgb(0, 122, 255)",
+      background: "rgb(242, 242, 247)",
+      card: "rgb(255, 255, 255)",
+      text: "rgb(0, 0, 0)",
+      border: "rgb(216, 216, 220)",
+      notification: "rgb(255, 59, 48)",
     },
   };
 
   const CustomDarkTheme: Theme = {
     ...DarkTheme,
     colors: {
-      primary: "rgb(10, 132, 255)", // System Blue (Dark Mode)
-      background: "rgb(1, 1, 1)", // True black background for OLED displays
-      card: "rgb(28, 28, 30)", // Dark card/surface color
-      text: "rgb(255, 255, 255)", // White text for dark mode
-      border: "rgb(44, 44, 46)", // Dark gray for separators/borders
-      notification: "rgb(255, 69, 58)", // System Red (Dark Mode)
+      primary: "rgb(10, 132, 255)",
+      background: "rgb(1, 1, 1)",
+      card: "rgb(28, 28, 30)",
+      text: "rgb(255, 255, 255)",
+      border: "rgb(44, 44, 46)",
+      notification: "rgb(255, 69, 58)",
     },
   };
+
   return (
     <>
       <StatusBar style="auto" animated />
-        <ThemeProvider
-          value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
-        >
+      <ThemeProvider
+        value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
+      >
+        <AuthProvider>
           <WidgetProvider>
             <GestureHandlerRootView>
-            <Stack>
-              {/* Client app with tabs */}
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              {/* Provider app with tabs */}
-              <Stack.Screen name="(provider-tabs)" options={{ headerShown: false }} />
-            </Stack>
-            <SystemBars style={"auto"} />
+              <RootLayoutNav />
+              <SystemBars style={"auto"} />
             </GestureHandlerRootView>
           </WidgetProvider>
-        </ThemeProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 }
