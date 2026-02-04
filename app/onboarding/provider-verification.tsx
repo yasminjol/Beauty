@@ -168,6 +168,19 @@ export default function ProviderVerificationScreen() {
         </View>
       </Modal>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol
+            ios_icon_name="chevron.left"
+            android_material_icon_name="arrow-back"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <View style={styles.progressBar}>
           <View style={[styles.progressSegment, styles.progressActive]} />
           <View style={[styles.progressSegment, styles.progressActive]} />
@@ -176,7 +189,6 @@ export default function ProviderVerificationScreen() {
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.stepLabel}>Step 4 of 4 (Optional)</Text>
           <Text style={styles.title}>Verify Your Identity</Text>
           <Text style={styles.subtitle}>
             Build trust with clients by verifying your identity
@@ -349,6 +361,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
     marginBottom: 8,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
   title: {
     fontSize: 28,

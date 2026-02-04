@@ -8,14 +8,12 @@ import { colors } from '@/styles/commonStyles';
 import { apiGet } from '@/utils/api';
 
 const DEFAULT_CATEGORIES = [
-  { id: 'hair', name: 'Hair', icon: 'content-cut' },
+  { id: 'braids', name: 'Braids', icon: 'content-cut' },
+  { id: 'locs', name: 'Locs', icon: 'content-cut' },
+  { id: 'barber', name: 'Barber', icon: 'content-cut' },
+  { id: 'wigs', name: 'Wigs', icon: 'brush' },
   { id: 'nails', name: 'Nails', icon: 'brush' },
-  { id: 'makeup', name: 'Makeup', icon: 'face' },
-  { id: 'skincare', name: 'Skincare', icon: 'spa' },
-  { id: 'massage', name: 'Massage', icon: 'self-improvement' },
-  { id: 'waxing', name: 'Waxing', icon: 'healing' },
   { id: 'lashes', name: 'Lashes', icon: 'visibility' },
-  { id: 'brows', name: 'Brows', icon: 'face-retouching-natural' },
 ];
 
 const MAX_FREE_CATEGORIES = 2;
@@ -93,6 +91,19 @@ export default function ProviderCategoriesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol
+            ios_icon_name="chevron.left"
+            android_material_icon_name="arrow-back"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <View style={styles.progressBar}>
           <View style={[styles.progressSegment, styles.progressActive]} />
           <View style={[styles.progressSegment, styles.progressActive]} />
@@ -101,10 +112,10 @@ export default function ProviderCategoriesScreen() {
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.stepLabel}>Step 3 of 4</Text>
-          <Text style={styles.title}>Select Your Service Categories</Text>
-          <Text style={styles.subtitle}>
-            Choose up to {MAX_FREE_CATEGORIES} categories for your Free plan
+          <Text style={styles.title}>Select Your Categories</Text>
+          <Text style={styles.subtitle}>Choose up to {MAX_FREE_CATEGORIES} categories for your Free plan. Upgrade to Pro or Premium to unlock unlimited service categories and more features!
+
+
           </Text>
         </View>
 
@@ -120,19 +131,6 @@ export default function ProviderCategoriesScreen() {
           </Text>
         </View>
 
-        {remainingSlots > 0 && selectedCategories.length > 0 && (
-          <View style={styles.infoBox}>
-            <IconSymbol
-              ios_icon_name="info.circle.fill"
-              android_material_icon_name="info"
-              size={20}
-              color={colors.primary}
-            />
-            <Text style={styles.infoText}>
-              You can select {remainingSlots} more {remainingSlots === 1 ? 'category' : 'categories'}
-            </Text>
-          </View>
-        )}
 
         <View style={styles.categoriesGrid}>
           {categories.map(category => {
@@ -178,21 +176,6 @@ export default function ProviderCategoriesScreen() {
           })}
         </View>
 
-        <View style={styles.upgradeBox}>
-          <IconSymbol
-            ios_icon_name="arrow.up.circle.fill"
-            android_material_icon_name="upgrade"
-            size={24}
-            color={colors.primary}
-          />
-          <View style={styles.upgradeContent}>
-            <Text style={styles.upgradeTitle}>Want more categories?</Text>
-            <Text style={styles.upgradeText}>
-              Upgrade to Pro or Premium to unlock unlimited service categories and more features
-            </Text>
-          </View>
-        </View>
-
         <TouchableOpacity
           style={[styles.continueButton, !isValid && styles.continueButtonDisabled]}
           onPress={handleContinue}
@@ -231,7 +214,7 @@ const styles = StyleSheet.create({
   progressBar: {
     flexDirection: 'row',
     gap: 8,
-    marginBottom: 32,
+    marginBottom: 20,
   },
   progressSegment: {
     flex: 1,
@@ -242,25 +225,26 @@ const styles = StyleSheet.create({
   progressActive: {
     backgroundColor: colors.primary,
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   header: {
     marginBottom: 20,
   },
-  stepLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: 8,
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     color: colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
+    textAlign: 'center',
+    lineHeight: 40, 
   },
   planBadge: {
     flexDirection: 'row',
@@ -270,7 +254,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 12,
   },
   planBadgeText: {
     fontSize: 15,
@@ -297,7 +281,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
-    marginBottom: 24,
+    marginTop: 12,
+    marginBottom: -8,
   },
   categoryCard: {
     width: '47%',
@@ -336,24 +321,19 @@ const styles = StyleSheet.create({
   },
   upgradeBox: {
     flexDirection: 'row',
-    gap: 16,
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: colors.card,
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+    padding: 16,
     borderWidth: 2,
     borderColor: colors.primary,
-  },
-  upgradeContent: {
-    flex: 1,
-    gap: 4,
-  },
-  upgradeTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 14,
   },
   upgradeText: {
+    flex: 1,
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
@@ -375,5 +355,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: colors.card,
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

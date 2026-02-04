@@ -10,7 +10,7 @@ import { apiPost } from '@/utils/api';
 
 export default function SignInScreen() {
   const router = useRouter();
-  const { selectedRole, signIn, signUp } = useAuth();
+  const { selectedRole, signInWithEmail, signUpWithEmail } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +20,10 @@ export default function SignInScreen() {
     visible: false,
     message: '',
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
 
   const roleLabel = selectedRole === 'client' ? 'Client' : 'Provider';
 
@@ -27,8 +31,17 @@ export default function SignInScreen() {
     setErrorModal({ visible: true, message });
   };
 
+  const toggleMode = () => {
+    setIsSignUp((prev) => !prev);
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+
   const handleEmailAuth = async () => {
-    if (!email || !password || (isSignUp && !name)) {
+    if (!email || !password || (isSignUp && !confirmPassword)) {
       showError('Please fill in all fields');
       return;
     }
@@ -38,16 +51,27 @@ export default function SignInScreen() {
       return;
     }
 
+    if (isSignUp) {
+      if (password.length < 8) {
+        showError('Password must be at least 8 characters');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showError("Passwords don't match");
+        return;
+      }
+    }
+
     console.log('[SignIn] User attempting', isSignUp ? 'sign up' : 'sign in', 'with email:', email);
     setIsLoading(true);
 
     try {
       if (isSignUp) {
         // Sign up with role
-        await signUp(email, password, name, selectedRole);
+        await signUpWithEmail(email, password, name);
       } else {
         // Sign in
-        await signIn(email, password);
+        await signInWithEmail(email, password);
       }
 
       // After successful auth, send OTP
@@ -119,30 +143,16 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <Text style={styles.logo}>EWAJI</Text>
           <Text style={styles.title}>
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isSignUp ? 'Create your account' : 'Welcome back'}
           </Text>
+
           <Text style={styles.subtitle}>
-            {isSignUp ? 'Sign up' : 'Sign in'} as a {roleLabel}
+            {isSignUp ? `as a ${roleLabel}` : `Sign in as a ${roleLabel}`}
           </Text>
         </View>
 
         <View style={styles.form}>
-          {isSignUp && (
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter your full name"
-                placeholderTextColor={colors.textSecondary}
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-              />
-            </View>
-          )}
-
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
@@ -153,21 +163,74 @@ export default function SignInScreen() {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
+              textContentType="emailAddress"
+              autoComplete="email"
+
             />
           </View>
 
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Password</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter your password"
-              placeholderTextColor={colors.textSecondary}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-            />
+
+            <View style={styles.passwordRow}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="Enter your password"
+                placeholderTextColor={colors.textSecondary}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword((v) => !v)}
+                hitSlop={10}
+              >
+                <IconSymbol
+                  ios_icon_name={showPassword ? 'eye.slash' : 'eye'}
+                  android_material_icon_name={showPassword ? 'visibility_off' : 'visibility'}
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
+
+          {isSignUp && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Confirm Password</Text>
+
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder="Confirm your password"
+                  placeholderTextColor={colors.textSecondary}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                />
+
+                <TouchableOpacity
+                  style={styles.eyeButton}
+                  onPress={() => setShowConfirmPassword((v) => !v)}
+                  hitSlop={10}
+                >
+                  <IconSymbol
+                    ios_icon_name={showConfirmPassword ? 'eye.slash' : 'eye'}
+                    android_material_icon_name={showConfirmPassword ? 'visibility_off' : 'visibility'}
+                    size={20}
+                    color={colors.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
 
           <TouchableOpacity
             style={styles.primaryButton}
@@ -221,7 +284,7 @@ export default function SignInScreen() {
 
           <TouchableOpacity
             style={styles.switchModeButton}
-            onPress={() => setIsSignUp(!isSignUp)}
+            onPress={toggleMode}
           >
             <Text style={styles.switchModeText}>
               {isSignUp ? 'Already have an account? ' : "Don't have an account? "}
@@ -397,5 +460,27 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: colors.card,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: 'transparent',
+  },
+
+  eyeButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
   },
 });

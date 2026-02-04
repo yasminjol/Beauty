@@ -13,6 +13,8 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  selectedRole: 'client' | 'provider' | null;
+  setSelectedRole: (role: 'client' | 'provider' | null) => void;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signUpWithEmail: (email: string, password: string, name?: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -70,6 +72,7 @@ function openOAuthPopup(provider: string): Promise<string> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<'client' | 'provider' | null>(null);
 
   useEffect(() => {
     fetchUser();
@@ -189,6 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
+        selectedRole,
+        setSelectedRole,
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,

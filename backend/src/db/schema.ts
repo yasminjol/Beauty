@@ -6,16 +6,12 @@ import { user } from './auth-schema.js';
  * Used by both clients (preferences) and providers (offered services)
  */
 export const SERVICE_CATEGORIES = [
-  'cleaning',
-  'plumbing',
-  'electrical',
-  'carpentry',
-  'painting',
-  'landscaping',
-  'hvac',
-  'appliance-repair',
-  'handyman',
-  'pest-control',
+  'braids',
+  'locs',
+  'barber',
+  'wigs',
+  'nails',
+  'lashes',
 ] as const;
 
 export const clientProfiles = pgTable('client_profiles', {

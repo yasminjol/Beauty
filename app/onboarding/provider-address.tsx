@@ -13,31 +13,48 @@ export default function ProviderAddressScreen() {
   const providerName = params.name as string;
   const businessName = params.businessName as string;
 
-  const [address, setAddress] = useState('');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [serviceType, setServiceType] = useState<'location' | 'travel' | 'both' | ''>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = () => {
-    if (!address.trim()) {
+    if (!street.trim() || !city.trim() || !postalCode.trim() || !serviceType) {
       return;
     }
 
-    console.log('Provider entered address:', address);
+    const address = `${street}, ${city} ${postalCode}`;
+    console.log('Provider entered address:', { street, city, postalCode, serviceType });
     setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
       router.push({
         pathname: '/onboarding/provider-categories',
-        params: { name: providerName, businessName, address },
+        params: { name: providerName, businessName, address, serviceType },
       });
     }, 300);
   };
 
-  const isValid = address.trim().length > 10;
+  const isValid = street.trim().length > 0 && city.trim().length > 0 && postalCode.trim().length > 0 && serviceType !== '';
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol
+            ios_icon_name="chevron.left"
+            android_material_icon_name="arrow-back"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <View style={styles.progressBar}>
           <View style={[styles.progressSegment, styles.progressActive]} />
           <View style={[styles.progressSegment, styles.progressActive]} />
@@ -46,37 +63,102 @@ export default function ProviderAddressScreen() {
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.stepLabel}>Step 2 of 4</Text>
           <Text style={styles.title}>Where do you provide services?</Text>
-          <Text style={styles.subtitle}>
-            This address will be used for appointment coordination and client navigation
-          </Text>
+          <Text style={styles.subtitle}> This helps clients find and navigate to your location.</Text>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Service Address</Text>
+            <Text style={styles.inputLabel}>Street Address</Text>
             <TextInput
-              style={styles.textArea}
-              placeholder="Enter your complete service address&#10;(Street, City, State, ZIP)"
+              style={styles.input}
+              placeholder="Street address and number"
               placeholderTextColor={colors.textSecondary}
-              value={address}
-              onChangeText={setAddress}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
+              value={street}
+              onChangeText={setStreet}
+              autoCapitalize="words"
               autoFocus
             />
-            <View style={styles.infoBox}>
-              <IconSymbol
-                ios_icon_name="info.circle.fill"
-                android_material_icon_name="info"
-                size={20}
-                color={colors.primary}
+          </View>
+
+          <View style={styles.rowContainer}>
+            <View style={[styles.inputContainer, { flex: 1.5 }]}>
+              <Text style={styles.inputLabel}>City</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="City"
+                placeholderTextColor={colors.textSecondary}
+                value={city}
+                onChangeText={setCity}
+                autoCapitalize="words"
               />
-              <Text style={styles.infoText}>
-                Clients will use this address to find and navigate to your location for appointments
-              </Text>
+            </View>
+            <View style={[styles.inputContainer, { flex: 1 }]}>
+              <Text style={styles.inputLabel}>ZIP / Postal Code</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="ZIP Code"
+                placeholderTextColor={colors.textSecondary}
+                value={postalCode}
+                onChangeText={setPostalCode}
+                autoCapitalize="characters"
+              />
+            </View>
+          </View>
+
+          <View style={styles.serviceTypeContainer}>
+            <Text style={styles.inputLabel}>How do you provide services?</Text>
+            <View style={styles.serviceTypeOptions}>
+              <TouchableOpacity
+                style={[
+                  styles.serviceTypeButton,
+                  serviceType === 'location' && styles.serviceTypeButtonActive,
+                ]}
+                onPress={() => setServiceType('location')}
+              >
+                <View style={[
+                  styles.radioButton,
+                  serviceType === 'location' && styles.radioButtonActive,
+                ]} />
+                <Text style={[
+                  styles.serviceTypeText,
+                  serviceType === 'location' && styles.serviceTypeTextActive,
+                ]}>At my location</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.serviceTypeButton,
+                  serviceType === 'travel' && styles.serviceTypeButtonActive,
+                ]}
+                onPress={() => setServiceType('travel')}
+              >
+                <View style={[
+                  styles.radioButton,
+                  serviceType === 'travel' && styles.radioButtonActive,
+                ]} />
+                <Text style={[
+                  styles.serviceTypeText,
+                  serviceType === 'travel' && styles.serviceTypeTextActive,
+                ]}>I travel to clients</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.serviceTypeButton,
+                  serviceType === 'both' && styles.serviceTypeButtonActive,
+                ]}
+                onPress={() => setServiceType('both')}
+              >
+                <View style={[
+                  styles.radioButton,
+                  serviceType === 'both' && styles.radioButtonActive,
+                ]} />
+                <Text style={[
+                  styles.serviceTypeText,
+                  serviceType === 'both' && styles.serviceTypeTextActive,
+                ]}>Both</Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -129,25 +211,26 @@ const styles = StyleSheet.create({
   progressActive: {
     backgroundColor: colors.primary,
   },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+  },
   header: {
     marginBottom: 32,
   },
-  stepLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.primary,
-    marginBottom: 8,
-  },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '800',
     color: colors.text,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
+    textAlign: 'center',
+    lineHeight: 40, 
   },
   form: {
     gap: 24,
@@ -155,35 +238,64 @@ const styles = StyleSheet.create({
   inputContainer: {
     gap: 8,
   },
+  rowContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   inputLabel: {
     fontSize: 15,
     fontWeight: '600',
     color: colors.text,
   },
-  textArea: {
+  input: {
     backgroundColor: colors.card,
     borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     fontSize: 16,
     color: colors.text,
-    borderWidth: 2,
+    borderWidth: 1,
     borderColor: colors.border,
-    minHeight: 120,
   },
-  infoBox: {
-    flexDirection: 'row',
+  serviceTypeContainer: {
     gap: 12,
-    backgroundColor: colors.secondary,
-    borderRadius: 12,
-    padding: 16,
-    marginTop: 8,
   },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
+  serviceTypeOptions: {
+    gap: 12,
+  },
+  serviceTypeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  serviceTypeButtonActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.secondary,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  radioButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  serviceTypeText: {
+    fontSize: 16,
     color: colors.text,
-    lineHeight: 20,
+    fontWeight: '500',
+  },
+  serviceTypeTextActive: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   continueButton: {
     backgroundColor: colors.primary,
@@ -202,5 +314,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: colors.card,
+  },
+  subtitle: {
+    marginTop: 6,
+    fontSize: 18,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

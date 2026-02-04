@@ -3,6 +3,7 @@ import * as appSchema from './db/schema.js';
 import * as authSchema from './db/auth-schema.js';
 import { emailOTP } from 'better-auth/plugins';
 import { registerOnboardingRoutes } from './routes/onboarding.js';
+import { registerOTPRoutes } from './routes/otp.js';
 
 // Combine schemas for full database type support
 const schema = { ...appSchema, ...authSchema };
@@ -32,6 +33,7 @@ app.withStorage();
 // Register routes - add your route modules here
 // IMPORTANT: Always use registration functions to avoid circular dependency issues
 registerOnboardingRoutes(app);
+registerOTPRoutes(app);
 
 await app.run();
 app.logger.info('Application running');
