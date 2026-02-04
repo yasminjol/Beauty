@@ -24,7 +24,12 @@ export default function ProviderCategoriesScreen() {
   
   const providerName = params.name as string;
   const businessName = params.businessName as string;
-  const address = params.address as string;
+  const country = params.country as string;
+  const stateProvince = params.stateProvince as string;
+  const phoneNumber = params.phoneNumber as string;
+  const streetAddress = params.streetAddress as string;
+  const zipCode = params.zipCode as string;
+  const serviceProvisionMethod = params.serviceProvisionMethod as string;
 
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -37,14 +42,17 @@ export default function ProviderCategoriesScreen() {
 
   const fetchCategories = async () => {
     try {
-      const response = await apiGet<{ id: string; name: string }[]>('/api/categories');
-      if (response && response.length > 0) {
+      const response = await apiGet<{ categories: string[] }>('/api/categories');
+      if (response && response.categories && response.categories.length > 0) {
         // Map backend categories to include icons
-        const mappedCategories = response.map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          icon: DEFAULT_CATEGORIES.find(dc => dc.id === cat.id)?.icon || 'category',
-        }));
+        const mappedCategories = response.categories.map((catId: string) => {
+          const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === catId);
+          return {
+            id: catId,
+            name: defaultCat?.name || catId,
+            icon: defaultCat?.icon || 'category',
+          };
+        });
         setCategories(mappedCategories);
       }
     } catch (error) {
@@ -77,8 +85,13 @@ export default function ProviderCategoriesScreen() {
         pathname: '/onboarding/provider-verification',
         params: { 
           name: providerName, 
-          businessName, 
-          address,
+          businessName,
+          country,
+          stateProvince,
+          phoneNumber,
+          streetAddress,
+          zipCode,
+          serviceProvisionMethod,
           categories: JSON.stringify(selectedCategories),
         },
       });

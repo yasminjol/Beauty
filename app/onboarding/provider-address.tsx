@@ -12,32 +12,42 @@ export default function ProviderAddressScreen() {
   
   const providerName = params.name as string;
   const businessName = params.businessName as string;
+  const country = params.country as string;
+  const stateProvince = params.stateProvince as string;
+  const phoneNumber = params.phoneNumber as string;
 
   const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
-  const [postalCode, setPostalCode] = useState('');
-  const [serviceType, setServiceType] = useState<'location' | 'travel' | 'both' | ''>('');
+  const [zipCode, setZipCode] = useState('');
+  const [serviceType, setServiceType] = useState<'at_my_location' | 'travel_to_clients' | 'both' | ''>('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = () => {
-    if (!street.trim() || !city.trim() || !postalCode.trim() || !serviceType) {
+    if (!street.trim() || !zipCode.trim() || !serviceType) {
       return;
     }
 
-    const address = `${street}, ${city} ${postalCode}`;
-    console.log('Provider entered address:', { street, city, postalCode, serviceType });
+    console.log('Provider entered address:', { street, zipCode, serviceType });
     setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
       router.push({
         pathname: '/onboarding/provider-categories',
-        params: { name: providerName, businessName, address, serviceType },
+        params: { 
+          name: providerName, 
+          businessName, 
+          country,
+          stateProvince,
+          phoneNumber,
+          streetAddress: street,
+          zipCode,
+          serviceProvisionMethod: serviceType,
+        },
       });
     }, 300);
   };
 
-  const isValid = street.trim().length > 0 && city.trim().length > 0 && postalCode.trim().length > 0 && serviceType !== '';
+  const isValid = street.trim().length > 0 && zipCode.trim().length > 0 && serviceType !== '';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -81,29 +91,16 @@ export default function ProviderAddressScreen() {
             />
           </View>
 
-          <View style={styles.rowContainer}>
-            <View style={[styles.inputContainer, { flex: 1.5 }]}>
-              <Text style={styles.inputLabel}>City</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="City"
-                placeholderTextColor={colors.textSecondary}
-                value={city}
-                onChangeText={setCity}
-                autoCapitalize="words"
-              />
-            </View>
-            <View style={[styles.inputContainer, { flex: 1 }]}>
-              <Text style={styles.inputLabel}>ZIP / Postal Code</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="ZIP Code"
-                placeholderTextColor={colors.textSecondary}
-                value={postalCode}
-                onChangeText={setPostalCode}
-                autoCapitalize="characters"
-              />
-            </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>ZIP / Postal Code</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter ZIP or postal code"
+              placeholderTextColor={colors.textSecondary}
+              value={zipCode}
+              onChangeText={setZipCode}
+              autoCapitalize="characters"
+            />
           </View>
 
           <View style={styles.serviceTypeContainer}>
@@ -112,34 +109,34 @@ export default function ProviderAddressScreen() {
               <TouchableOpacity
                 style={[
                   styles.serviceTypeButton,
-                  serviceType === 'location' && styles.serviceTypeButtonActive,
+                  serviceType === 'at_my_location' && styles.serviceTypeButtonActive,
                 ]}
-                onPress={() => setServiceType('location')}
+                onPress={() => setServiceType('at_my_location')}
               >
                 <View style={[
                   styles.radioButton,
-                  serviceType === 'location' && styles.radioButtonActive,
+                  serviceType === 'at_my_location' && styles.radioButtonActive,
                 ]} />
                 <Text style={[
                   styles.serviceTypeText,
-                  serviceType === 'location' && styles.serviceTypeTextActive,
+                  serviceType === 'at_my_location' && styles.serviceTypeTextActive,
                 ]}>At my location</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[
                   styles.serviceTypeButton,
-                  serviceType === 'travel' && styles.serviceTypeButtonActive,
+                  serviceType === 'travel_to_clients' && styles.serviceTypeButtonActive,
                 ]}
-                onPress={() => setServiceType('travel')}
+                onPress={() => setServiceType('travel_to_clients')}
               >
                 <View style={[
                   styles.radioButton,
-                  serviceType === 'travel' && styles.radioButtonActive,
+                  serviceType === 'travel_to_clients' && styles.radioButtonActive,
                 ]} />
                 <Text style={[
                   styles.serviceTypeText,
-                  serviceType === 'travel' && styles.serviceTypeTextActive,
+                  serviceType === 'travel_to_clients' && styles.serviceTypeTextActive,
                 ]}>I travel to clients</Text>
               </TouchableOpacity>
 

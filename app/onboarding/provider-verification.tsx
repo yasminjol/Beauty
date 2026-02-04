@@ -7,7 +7,7 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/contexts/AuthContext';
-import { authenticatedPost, BACKEND_URL } from '@/utils/api';
+import { authenticatedPost, BACKEND_URL, getBearerToken } from '@/utils/api';
 
 export default function ProviderVerificationScreen() {
   const router = useRouter();
@@ -16,7 +16,12 @@ export default function ProviderVerificationScreen() {
   
   const providerName = params.name as string;
   const businessName = params.businessName as string;
-  const address = params.address as string;
+  const country = params.country as string;
+  const stateProvince = params.stateProvince as string;
+  const phoneNumber = params.phoneNumber as string;
+  const streetAddress = params.streetAddress as string;
+  const zipCode = params.zipCode as string;
+  const serviceProvisionMethod = params.serviceProvisionMethod as string;
   const categories = JSON.parse(params.categories as string);
 
   const [idImage, setIdImage] = useState<string | null>(null);
@@ -59,11 +64,18 @@ export default function ProviderVerificationScreen() {
 
     try {
       // First, complete provider onboarding
+      const serviceAddress = `${streetAddress}, ${stateProvince}, ${zipCode}, ${country}`;
       await authenticatedPost('/api/onboarding/provider', {
         name: providerName,
         businessName,
-        serviceAddress: address,
+        serviceAddress,
         serviceCategories: categories,
+        country,
+        stateProvince,
+        phoneNumber,
+        streetAddress,
+        zipCode,
+        serviceProvisionMethod,
       });
 
       // Then upload ID document
@@ -78,24 +90,32 @@ export default function ProviderVerificationScreen() {
         type,
       } as any);
 
+      // Get auth token for upload
+      const token = await getBearerToken();
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
       // Upload ID using fetch with multipart/form-data
       const response = await fetch(`${BACKEND_URL}/api/onboarding/provider/id-upload`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to upload ID document');
+        const errorText = await response.text();
+        throw new Error(`Failed to upload ID document: ${errorText}`);
       }
 
-      console.log('[ProviderVerification] Upload complete');
+      console.log('[ProviderVerification] ✅ Upload complete! Redirecting to dashboard...');
       
       // Refresh user to update onboarding status
       await refreshUser();
-      completeOnboarding();
+      await completeOnboarding();
       
       setIsUploading(false);
       router.replace('/(provider-tabs)/dashboard');
@@ -115,18 +135,25 @@ export default function ProviderVerificationScreen() {
 
     try {
       // Complete provider onboarding without ID
+      const serviceAddress = `${streetAddress}, ${stateProvince}, ${zipCode}, ${country}`;
       await authenticatedPost('/api/onboarding/provider', {
         name: providerName,
         businessName,
-        serviceAddress: address,
+        serviceAddress,
         serviceCategories: categories,
+        country,
+        stateProvince,
+        phoneNumber,
+        streetAddress,
+        zipCode,
+        serviceProvisionMethod,
       });
 
-      console.log('[ProviderVerification] Onboarding complete');
+      console.log('[ProviderVerification] ✅ Onboarding complete! Redirecting to dashboard...');
       
       // Refresh user to update onboarding status
       await refreshUser();
-      completeOnboarding();
+      await completeOnboarding();
       
       setIsCompleting(false);
       router.replace('/(provider-tabs)/dashboard');

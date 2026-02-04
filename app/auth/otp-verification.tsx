@@ -60,7 +60,7 @@ export default function OtpVerificationScreen() {
   };
 
   const handleVerifyOtp = async (otpCode: string) => {
-    console.log('[OTP] Verifying OTP:', otpCode, 'for email:', email);
+    console.log('[OTP] 🔐 Verifying OTP:', otpCode, 'for email:', email);
     setIsLoading(true);
     setError('');
 
@@ -68,7 +68,7 @@ export default function OtpVerificationScreen() {
       // Verify OTP with backend
       await apiPost('/api/otp/verify', { email, code: otpCode });
       
-      console.log('[OTP] Verification successful');
+      console.log('[OTP] ✅ Verification successful! Proceeding to onboarding...');
       
       // Refresh user data to get updated onboarding status
       await refreshUser();
@@ -79,8 +79,10 @@ export default function OtpVerificationScreen() {
       // Navigate to onboarding based on role after a short delay
       setTimeout(() => {
         if (selectedRole === 'client') {
+          console.log('[OTP] → Redirecting to client onboarding');
           router.replace('/onboarding/client-name');
         } else {
+          console.log('[OTP] → Redirecting to provider onboarding');
           router.replace('/onboarding/provider-name');
         }
       }, 1500);
@@ -89,24 +91,26 @@ export default function OtpVerificationScreen() {
       setError('Invalid or expired code. Please try again.');
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
-      console.error('[OTP] Verification error:', err);
+      console.error('[OTP] ❌ Verification error:', err);
     }
   };
 
   const handleResendOtp = async () => {
     if (!canResend) return;
 
-    console.log('[OTP] Resending OTP to:', email);
+    console.log('[OTP] 📧 Resending OTP to:', email);
+    console.log('[OTP] 💡 TIP: Check your backend logs/terminal for the OTP code!');
     setCanResend(false);
     setResendTimer(60);
     setError('');
 
     try {
       await apiPost('/api/otp/send', { email });
+      console.log('[OTP] ✅ OTP resent successfully!');
       setSuccessModal(true);
       setTimeout(() => setSuccessModal(false), 2000);
     } catch (err: any) {
-      console.error('[OTP] Resend error:', err);
+      console.error('[OTP] ❌ Resend error:', err);
       setError('Failed to resend code. Please try again.');
       setCanResend(true);
     }

@@ -29,7 +29,13 @@ export default function ProviderNameScreen() {
       setIsLoading(false);
       router.push({
         pathname: '/onboarding/provider-address',
-        params: { name, businessName, country, state, phoneNumber },
+        params: { 
+          name, 
+          businessName, 
+          country, 
+          stateProvince: state, 
+          phoneNumber 
+        },
       });
     }, 300);
   };

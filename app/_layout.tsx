@@ -26,12 +26,12 @@ export const unstable_settings = {
 };
 
 function RootLayoutNav() {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (loading) return;
 
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
@@ -65,7 +65,7 @@ function RootLayoutNav() {
         }
       }
     }
-  }, [user, isLoading, segments, router]);
+  }, [user, loading, segments, router]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>

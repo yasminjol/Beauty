@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
@@ -9,26 +9,28 @@ import { colors } from '@/styles/commonStyles';
 export default function ClientNameScreen() {
   const router = useRouter();
   const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [locationEnabled, setLocationEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleContinue = () => {
-    if (!name.trim()) {
+    if (!name.trim() || !phoneNumber.trim()) {
       return;
     }
 
-    console.log('Client entered name:', name);
+    console.log('Client entered:', { name, phoneNumber, locationEnabled });
     setIsLoading(true);
 
     setTimeout(() => {
       setIsLoading(false);
       router.push({
         pathname: '/onboarding/client-preferences',
-        params: { name },
+        params: { name, phoneNumber, locationEnabled: locationEnabled ? 'true' : 'false' },
       });
     }, 300);
   };
 
-  const isValid = name.trim().length > 0;
+  const isValid = name.trim().length > 0 && phoneNumber.trim().length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -40,7 +42,7 @@ export default function ClientNameScreen() {
 
         <View style={styles.header}>
           <Text style={styles.stepLabel}>Step 1 of 2</Text>
-          <Text style={styles.title}>What&apos;s your name?</Text>
+          <Text style={styles.title}>Tell us about yourself</Text>
           <Text style={styles.subtitle}>
             Let&apos;s personalize your EWAJI experience
           </Text>
@@ -58,6 +60,41 @@ export default function ClientNameScreen() {
               autoCapitalize="words"
               autoFocus
             />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your phone number"
+              placeholderTextColor={colors.textSecondary}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          <View style={styles.locationContainer}>
+            <View style={styles.locationHeader}>
+              <IconSymbol
+                ios_icon_name="location.fill"
+                android_material_icon_name="location-on"
+                size={24}
+                color={colors.primary}
+              />
+              <View style={styles.locationTextContainer}>
+                <Text style={styles.locationTitle}>Enable Location</Text>
+                <Text style={styles.locationSubtitle}>
+                  Find providers near you
+                </Text>
+              </View>
+              <Switch
+                value={locationEnabled}
+                onValueChange={setLocationEnabled}
+                trackColor={{ false: colors.border, true: colors.secondary }}
+                thumbColor={locationEnabled ? colors.primary : colors.textSecondary}
+              />
+            </View>
           </View>
 
           <TouchableOpacity
@@ -167,5 +204,30 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
     color: colors.card,
+  },
+  locationContainer: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  locationTextContainer: {
+    flex: 1,
+  },
+  locationTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  locationSubtitle: {
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 });

@@ -68,25 +68,32 @@ export default function SignInScreen() {
     try {
       if (isSignUp) {
         // Sign up with role
+        console.log('[SignIn] Creating account for:', email, 'as', selectedRole);
         await signUpWithEmail(email, password, name);
+        
+        // After successful sign up, send OTP
+        console.log('[SignIn] ✅ Sign up successful! Sending OTP to:', email);
+        await apiPost('/api/otp/send', { email });
+        console.log('[SignIn] ✅ OTP sent! Check backend logs for the code.');
+        
+        // Navigate to OTP screen
+        setIsLoading(false);
+        router.push({
+          pathname: '/auth/otp-verification',
+          params: { email, isSignUp: 'true' },
+        });
       } else {
-        // Sign in
+        // Sign in - no OTP needed
+        console.log('[SignIn] Signing in:', email);
         await signInWithEmail(email, password);
+        
+        console.log('[SignIn] ✅ Sign in successful! Redirecting to dashboard...');
+        setIsLoading(false);
+        // Navigation will be handled by the auth context
       }
-
-      // After successful auth, send OTP
-      console.log('[SignIn] Auth successful, sending OTP...');
-      await apiPost('/api/otp/send', { email });
-      
-      // Navigate to OTP screen
-      setIsLoading(false);
-      router.push({
-        pathname: '/auth/otp-verification',
-        params: { email, isSignUp: isSignUp ? 'true' : 'false' },
-      });
     } catch (error: any) {
       setIsLoading(false);
-      console.error('[SignIn] Auth error:', error);
+      console.error('[SignIn] ❌ Auth error:', error);
       showError(error.message || 'Authentication failed. Please try again.');
     }
   };

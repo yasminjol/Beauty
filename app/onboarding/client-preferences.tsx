@@ -24,6 +24,8 @@ export default function ClientPreferencesScreen() {
   const { completeOnboarding, refreshUser } = useAuth();
   
   const clientName = params.name as string;
+  const phoneNumber = params.phoneNumber as string;
+  const locationEnabled = params.locationEnabled === 'true';
 
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -42,14 +44,17 @@ export default function ClientPreferencesScreen() {
 
   const fetchCategories = async () => {
     try {
-      const response = await apiGet<{ id: string; name: string }[]>('/api/categories');
-      if (response && response.length > 0) {
+      const response = await apiGet<{ categories: string[] }>('/api/categories');
+      if (response && response.categories && response.categories.length > 0) {
         // Map backend categories to include icons
-        const mappedCategories = response.map((cat: any) => ({
-          id: cat.id,
-          name: cat.name,
-          icon: DEFAULT_CATEGORIES.find(dc => dc.id === cat.id)?.icon || 'category',
-        }));
+        const mappedCategories = response.categories.map((catId: string) => {
+          const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === catId);
+          return {
+            id: catId,
+            name: defaultCat?.name || catId,
+            icon: defaultCat?.icon || 'category',
+          };
+        });
         setCategories(mappedCategories);
       }
     } catch (error) {
@@ -69,6 +74,8 @@ export default function ClientPreferencesScreen() {
   const handleComplete = async () => {
     console.log('[ClientOnboarding] Completing with preferences:', {
       name: clientName,
+      phoneNumber,
+      locationEnabled,
       categories: selectedCategories,
       distance: distanceRange,
       price: priceRange,
@@ -78,16 +85,54 @@ export default function ClientPreferencesScreen() {
 
     try {
       // Submit client onboarding data to backend
+      const payload: any = {
+        name: clientName,
+        phoneNumber,
+        locationEnabled,
+      };
+
+      // Only include preferences if categories are selected
+      if (selectedCategories.length > 0) {
+        payload.preferredCategories = selectedCategories;
+        payload.preferredDistanceMin = distanceRange[0];
+        payload.preferredDistanceMax = distanceRange[1];
+        payload.preferredPriceMin = priceRange[0];
+        payload.preferredPriceMax = priceRange[1];
+      }
+
+      await authenticatedPost('/api/onboarding/client', payload);
+
+      console.log('[ClientOnboarding] ✅ Onboarding complete! Redirecting to dashboard...');
+      
+      // Refresh user to update onboarding status
+      await refreshUser();
+      await completeOnboarding();
+      
+      setIsLoading(false);
+      router.replace('/(tabs)/(home)/');
+    } catch (error: any) {
+      setIsLoading(false);
+      console.error('[ClientOnboarding] Error:', error);
+      setErrorModal({
+        visible: true,
+        message: error.message || 'Failed to complete onboarding. Please try again.',
+      });
+    }
+  };
+
+  const handleSkip = async () => {
+    console.log('[ClientOnboarding] Skipping preferences');
+    setIsLoading(true);
+
+    try {
+      // Submit client onboarding data without preferences
       await authenticatedPost('/api/onboarding/client', {
         name: clientName,
-        preferredCategories: selectedCategories,
-        preferredDistanceMin: distanceRange[0],
-        preferredDistanceMax: distanceRange[1],
-        preferredPriceMin: priceRange[0],
-        preferredPriceMax: priceRange[1],
+        phoneNumber,
+        locationEnabled,
       });
 
-      console.log('[ClientOnboarding] Onboarding complete');
+      console.log('[ClientOnboarding] Onboarding complete (skipped preferences)');
       
       // Refresh user to update onboarding status
       await refreshUser();
@@ -105,7 +150,7 @@ export default function ClientPreferencesScreen() {
     }
   };
 
-  const isValid = selectedCategories.length > 0;
+  const isValid = true; // Always valid since preferences are optional
   const distanceText = `${distanceRange[0]} - ${distanceRange[1]} miles`;
   const priceText = `$${priceRange[0]} - $${priceRange[1]}`;
 
@@ -143,10 +188,10 @@ export default function ClientPreferencesScreen() {
         </View>
 
         <View style={styles.header}>
-          <Text style={styles.stepLabel}>Step 2 of 2</Text>
+          <Text style={styles.stepLabel}>Step 2 of 2 (Optional)</Text>
           <Text style={styles.title}>Set Your Preferences</Text>
           <Text style={styles.subtitle}>
-            Help us personalize your service discovery
+            Help us personalize your service discovery, or skip to explore
           </Text>
         </View>
 
@@ -216,15 +261,17 @@ export default function ClientPreferencesScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.completeButton, !isValid && styles.completeButtonDisabled]}
+          style={styles.completeButton}
           onPress={handleComplete}
-          disabled={!isValid || isLoading}
+          disabled={isLoading}
         >
           {isLoading ? (
             <ActivityIndicator color={colors.card} />
           ) : (
             <>
-              <Text style={styles.completeButtonText}>Complete Setup</Text>
+              <Text style={styles.completeButtonText}>
+                {selectedCategories.length > 0 ? 'Complete Setup' : 'Complete Without Preferences'}
+              </Text>
               <IconSymbol
                 ios_icon_name="checkmark.circle.fill"
                 android_material_icon_name="check-circle"
@@ -233,6 +280,14 @@ export default function ClientPreferencesScreen() {
               />
             </>
           )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleSkip}
+          disabled={isLoading}
+        >
+          <Text style={styles.skipButtonText}>Skip for Now</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -352,14 +407,23 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
-  completeButtonDisabled: {
-    backgroundColor: colors.textSecondary,
-    opacity: 0.5,
-  },
   completeButtonText: {
     fontSize: 17,
     fontWeight: '600',
     color: colors.card,
+  },
+  skipButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+  },
+  skipButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
