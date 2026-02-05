@@ -5,9 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ClientNameScreen() {
   const router = useRouter();
+  const { signOut } = useAuth();
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [locationEnabled, setLocationEnabled] = useState(false);
@@ -30,11 +32,29 @@ export default function ClientNameScreen() {
     }, 300);
   };
 
+  const handleBack = async () => {
+    await signOut();
+    router.replace('/auth/role-selection');
+  };
+
   const isValid = name.trim().length > 0 && phoneNumber.trim().length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={handleBack}
+        >
+          <IconSymbol
+            ios_icon_name="chevron.left"
+            android_material_icon_name="arrow-back"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <View style={styles.progressBar}>
           <View style={[styles.progressSegment, styles.progressActive]} />
           <View style={styles.progressSegment} />
@@ -131,6 +151,17 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingVertical: 20,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
   progressBar: {
     flexDirection: 'row',

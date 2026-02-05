@@ -141,19 +141,6 @@ export default function OtpVerificationScreen() {
         </View>
       </Modal>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <IconSymbol
-            ios_icon_name="chevron.left"
-            android_material_icon_name="arrow-back"
-            size={24}
-            color={colors.primary}
-          />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <IconSymbol

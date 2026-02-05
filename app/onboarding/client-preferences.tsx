@@ -10,12 +10,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { authenticatedPost, apiGet } from '@/utils/api';
 
 const DEFAULT_CATEGORIES = [
-  { id: 'hair', name: 'Hair', icon: 'content-cut' },
+  { id: 'braids', name: 'Braids', icon: 'content-cut' },
+  { id: 'locs', name: 'Locs', icon: 'content-cut' },
+  { id: 'barber', name: 'Barber', icon: 'content-cut' },
+  { id: 'wigs', name: 'Wigs', icon: 'brush' },
   { id: 'nails', name: 'Nails', icon: 'brush' },
-  { id: 'makeup', name: 'Makeup', icon: 'face' },
-  { id: 'skincare', name: 'Skincare', icon: 'spa' },
-  { id: 'massage', name: 'Massage', icon: 'self-improvement' },
-  { id: 'waxing', name: 'Waxing', icon: 'healing' },
+  { id: 'lashes', name: 'Lashes', icon: 'visibility' },
 ];
 
 export default function ClientPreferencesScreen() {
@@ -136,7 +136,7 @@ export default function ClientPreferencesScreen() {
       
       // Refresh user to update onboarding status
       await refreshUser();
-      completeOnboarding();
+      await completeOnboarding();
       
       setIsLoading(false);
       router.replace('/(tabs)/(home)/');
@@ -182,6 +182,19 @@ export default function ClientPreferencesScreen() {
         </View>
       </Modal>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <IconSymbol
+            ios_icon_name="chevron.left"
+            android_material_icon_name="arrow-back"
+            size={24}
+            color={colors.primary}
+          />
+          <Text style={styles.backText}>Back</Text>
+        </TouchableOpacity>
+
         <View style={styles.progressBar}>
           <View style={[styles.progressSegment, styles.progressActive]} />
           <View style={[styles.progressSegment, styles.progressActive]} />
@@ -304,6 +317,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     paddingBottom: 40,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  backText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
   progressBar: {
     flexDirection: 'row',
