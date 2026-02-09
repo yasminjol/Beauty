@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -7,7 +7,6 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import Slider from '@react-native-community/slider';
 import { useAuth } from '@/contexts/AuthContext';
-import { authenticatedPost, apiGet } from '@/utils/api';
 
 const DEFAULT_CATEGORIES = [
   { id: 'braids', name: 'Braids', icon: 'content-cut' },
@@ -21,13 +20,13 @@ const DEFAULT_CATEGORIES = [
 export default function ClientPreferencesScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { completeOnboarding, refreshUser } = useAuth();
+  const { completeOnboarding } = useAuth();
   
   const clientName = params.name as string;
   const phoneNumber = params.phoneNumber as string;
   const locationEnabled = params.locationEnabled === 'true';
 
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const categories = DEFAULT_CATEGORIES;
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [distanceRange, setDistanceRange] = useState([0, 25]);
   const [priceRange, setPriceRange] = useState([0, 150]);
@@ -36,32 +35,6 @@ export default function ClientPreferencesScreen() {
     visible: false,
     message: '',
   });
-
-  // Fetch categories from backend on mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await apiGet<{ categories: string[] }>('/api/categories');
-      if (response && response.categories && response.categories.length > 0) {
-        // Map backend categories to include icons
-        const mappedCategories = response.categories.map((catId: string) => {
-          const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === catId);
-          return {
-            id: catId,
-            name: defaultCat?.name || catId,
-            icon: defaultCat?.icon || 'category',
-          };
-        });
-        setCategories(mappedCategories);
-      }
-    } catch (error) {
-      console.error('[ClientPreferences] Error fetching categories:', error);
-      // Use default categories if fetch fails
-    }
-  };
 
   const toggleCategory = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -84,28 +57,11 @@ export default function ClientPreferencesScreen() {
     setIsLoading(true);
 
     try {
-      // Submit client onboarding data to backend
-      const payload: any = {
-        name: clientName,
-        phoneNumber,
-        locationEnabled,
-      };
-
-      // Only include preferences if categories are selected
-      if (selectedCategories.length > 0) {
-        payload.preferredCategories = selectedCategories;
-        payload.preferredDistanceMin = distanceRange[0];
-        payload.preferredDistanceMax = distanceRange[1];
-        payload.preferredPriceMin = priceRange[0];
-        payload.preferredPriceMax = priceRange[1];
-      }
-
-      await authenticatedPost('/api/onboarding/client', payload);
+      // UI mock only: simulate completion request.
+      await new Promise((resolve) => setTimeout(resolve, 900));
 
       console.log('[ClientOnboarding] ✅ Onboarding complete! Redirecting to dashboard...');
-      
-      // Refresh user to update onboarding status
-      await refreshUser();
+
       await completeOnboarding();
       
       setIsLoading(false);
@@ -125,17 +81,11 @@ export default function ClientPreferencesScreen() {
     setIsLoading(true);
 
     try {
-      // Submit client onboarding data without preferences
-      await authenticatedPost('/api/onboarding/client', {
-        name: clientName,
-        phoneNumber,
-        locationEnabled,
-      });
+      // UI mock only: simulate completion request.
+      await new Promise((resolve) => setTimeout(resolve, 650));
 
       console.log('[ClientOnboarding] Onboarding complete (skipped preferences)');
-      
-      // Refresh user to update onboarding status
-      await refreshUser();
+
       await completeOnboarding();
       
       setIsLoading(false);

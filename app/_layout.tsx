@@ -46,12 +46,14 @@ function RootLayoutNav() {
       }
     } else if (!user.onboardingComplete) {
       // User authenticated but onboarding not complete
-      if (!inOnboardingGroup) {
+      if (!inOnboardingGroup && !inAuthGroup) {
         console.log('Redirecting to onboarding - user not onboarded');
         if (user.role === 'client') {
           router.replace('/onboarding/client-name');
-        } else {
+        } else if (user.role === 'provider') {
           router.replace('/onboarding/provider-name');
+        } else {
+          router.replace('/auth/role-selection');
         }
       }
     } else {
@@ -60,8 +62,10 @@ function RootLayoutNav() {
         console.log('Redirecting to dashboard - user authenticated and onboarded');
         if (user.role === 'client') {
           router.replace('/(tabs)/(home)/');
-        } else {
+        } else if (user.role === 'provider') {
           router.replace('/(provider-tabs)/dashboard');
+        } else {
+          router.replace('/auth/role-selection');
         }
       }
     }

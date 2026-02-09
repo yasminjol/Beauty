@@ -10,9 +10,9 @@ export default function RoleSelectionScreen() {
   const router = useRouter();
   const { setSelectedRole } = useAuth();
 
-  const handleRoleSelect = (role: 'client' | 'provider') => {
+  const handleRoleSelect = async (role: 'client' | 'provider') => {
     console.log('User selected role:', role);
-    setSelectedRole(role);
+    await setSelectedRole(role);
     router.push('/auth/sign-in');
   };
 

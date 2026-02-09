@@ -6,15 +6,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiPost } from '@/utils/api';
 
 export default function OtpVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { selectedRole, refreshUser } = useAuth();
+  const { selectedRole } = useAuth();
   
   const email = params.email as string;
-  const isSignUp = params.isSignUp === 'true';
 
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,6 +20,7 @@ export default function OtpVerificationScreen() {
   const [resendTimer, setResendTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [successModal, setSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('Email verified successfully');
 
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -65,25 +64,23 @@ export default function OtpVerificationScreen() {
     setError('');
 
     try {
-      // Verify OTP with backend
-      await apiPost('/api/otp/verify', { email, code: otpCode });
+      // UI mock only: accept any entered OTP.
+      await new Promise((resolve) => setTimeout(resolve, 800));
       
       console.log('[OTP] ✅ Verification successful! Proceeding to onboarding...');
       
-      // Refresh user data to get updated onboarding status
-      await refreshUser();
-      
       setIsLoading(false);
+      setSuccessMessage('Email verified successfully');
       setSuccessModal(true);
       
       // Navigate to onboarding based on role after a short delay
       setTimeout(() => {
-        if (selectedRole === 'client') {
-          console.log('[OTP] → Redirecting to client onboarding');
-          router.replace('/onboarding/client-name');
-        } else {
+        if (selectedRole === 'provider') {
           console.log('[OTP] → Redirecting to provider onboarding');
           router.replace('/onboarding/provider-name');
+        } else {
+          console.log('[OTP] → Redirecting to client onboarding');
+          router.replace('/onboarding/client-name');
         }
       }, 1500);
     } catch (err: any) {
@@ -99,14 +96,15 @@ export default function OtpVerificationScreen() {
     if (!canResend) return;
 
     console.log('[OTP] 📧 Resending OTP to:', email);
-    console.log('[OTP] 💡 TIP: Check your backend logs/terminal for the OTP code!');
     setCanResend(false);
     setResendTimer(60);
     setError('');
 
     try {
-      await apiPost('/api/otp/send', { email });
+      // UI mock only: simulate resend success.
+      await new Promise((resolve) => setTimeout(resolve, 600));
       console.log('[OTP] ✅ OTP resent successfully!');
+      setSuccessMessage('Code sent successfully');
       setSuccessModal(true);
       setTimeout(() => setSuccessModal(false), 2000);
     } catch (err: any) {
@@ -134,9 +132,7 @@ export default function OtpVerificationScreen() {
               color={colors.primary}
             />
             <Text style={styles.modalTitle}>Success!</Text>
-            <Text style={styles.modalMessage}>
-              {error ? 'Code sent successfully' : 'Email verified successfully'}
-            </Text>
+            <Text style={styles.modalMessage}>{successMessage}</Text>
           </View>
         </View>
       </Modal>

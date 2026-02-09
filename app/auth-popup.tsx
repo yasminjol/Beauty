@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Platform } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import { authClient } from "@/lib/auth";
 
 export default function AuthPopupScreen() {
   const { provider } = useLocalSearchParams<{ provider: string }>();
@@ -15,16 +14,18 @@ export default function AuthPopupScreen() {
       return;
     }
 
-    authClient.signIn.social({
-      provider: provider as any,
-      callbackURL: `${window.location.origin}/auth-callback`,
-    });
+    // UI mock only: social auth is a placeholder in build phase.
+    window.opener?.postMessage(
+      { type: "oauth-error", error: "Social authentication is currently mocked in UI mode." },
+      "*"
+    );
+    setTimeout(() => window.close(), 1200);
   }, [provider]);
 
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#007AFF" />
-      <Text style={styles.text}>Redirecting to sign in...</Text>
+      <Text style={styles.text}>Social authentication is in mock mode...</Text>
     </View>
   );
 }

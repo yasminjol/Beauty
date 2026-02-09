@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
-import { apiGet } from '@/utils/api';
 
 const DEFAULT_CATEGORIES = [
   { id: 'braids', name: 'Braids', icon: 'content-cut' },
@@ -31,35 +30,9 @@ export default function ProviderCategoriesScreen() {
   const zipCode = params.zipCode as string;
   const serviceProvisionMethod = params.serviceProvisionMethod as string;
 
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const categories = DEFAULT_CATEGORIES;
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Fetch categories from backend on mount
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  const fetchCategories = async () => {
-    try {
-      const response = await apiGet<{ categories: string[] }>('/api/categories');
-      if (response && response.categories && response.categories.length > 0) {
-        // Map backend categories to include icons
-        const mappedCategories = response.categories.map((catId: string) => {
-          const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === catId);
-          return {
-            id: catId,
-            name: defaultCat?.name || catId,
-            icon: defaultCat?.icon || 'category',
-          };
-        });
-        setCategories(mappedCategories);
-      }
-    } catch (error) {
-      console.error('[ProviderCategories] Error fetching categories:', error);
-      // Use default categories if fetch fails
-    }
-  };
 
   const toggleCategory = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -99,7 +72,6 @@ export default function ProviderCategoriesScreen() {
   };
 
   const isValid = selectedCategories.length > 0;
-  const remainingSlots = MAX_FREE_CATEGORIES - selectedCategories.length;
 
   return (
     <SafeAreaView style={styles.container}>

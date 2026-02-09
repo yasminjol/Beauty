@@ -2,11 +2,37 @@
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProviderProfileScreen() {
+  const { signOut } = useAuth();
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const verificationStatus = 'pending';
+
+  const handleLogoutPress = () => {
+    console.log('[Provider iOS] Logout button pressed - showing modal');
+    Alert.alert('Debug', 'Logout button pressed!');
+    setLogoutModalVisible(true);
+  };
+
+  const handleConfirmLogout = async () => {
+    console.log('[Provider iOS] Logout confirmed - calling signOut');
+    setLogoutModalVisible(false);
+    try {
+      await signOut();
+      console.log('[Provider iOS] ✅ Signed out successfully!');
+    } catch (error) {
+      console.error('[Provider iOS] ❌ Logout error:', error);
+      setLogoutModalVisible(true); // Show modal again if logout failed
+    }
+  };
+
+  const handleCancelLogout = () => {
+    console.log('[Provider iOS] Logout cancelled');
+    setLogoutModalVisible(false);
+  };
 
   const getVerificationBadge = () => {
     switch (verificationStatus) {
@@ -53,6 +79,43 @@ export default function ProviderProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Logout Confirmation Modal */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelLogout}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <IconSymbol
+              ios_icon_name="arrow.right.square.fill"
+              android_material_icon_name="logout"
+              size={48}
+              color={colors.error}
+            />
+            <Text style={styles.modalTitle}>Log Out?</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to log out? You'll need to sign in again to access your account.
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancelLogout}
+              >
+                <Text style={[styles.modalButtonText, styles.cancelButtonText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.logoutConfirmButton]}
+                onPress={handleConfirmLogout}
+              >
+                <Text style={styles.logoutConfirmButtonText}>Log Out</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Profile</Text>
@@ -197,7 +260,7 @@ export default function ProviderProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogoutPress}>
           <IconSymbol
             ios_icon_name="arrow.right.square.fill"
             android_material_icon_name="logout"
@@ -327,6 +390,67 @@ const styles = StyleSheet.create({
   },
   menuItemLeft: {
     flexDirection: 'row',
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+    marginTop: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cancelButtonText: {
+    color: colors.text,
+  },
+  logoutConfirmButton: {
+    backgroundColor: colors.error,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  logoutConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.card,
+  },
     alignItems: 'center',
     gap: 12,
     flex: 1,

@@ -6,7 +6,6 @@ import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiPost } from '@/utils/api';
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -25,7 +24,7 @@ export default function SignInScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 
-  const roleLabel = selectedRole === 'client' ? 'Client' : 'Provider';
+  const roleLabel = selectedRole === 'provider' ? 'Provider' : 'Client';
 
   const showError = (message: string) => {
     setErrorModal({ visible: true, message });
@@ -67,15 +66,12 @@ export default function SignInScreen() {
 
     try {
       if (isSignUp) {
-        // Sign up with role
+        // Sign up is UI-mocked and continues to OTP simulation.
         console.log('[SignIn] Creating account for:', email, 'as', selectedRole);
         await signUpWithEmail(email, password, name);
-        
-        // After successful sign up, send OTP
-        console.log('[SignIn] ✅ Sign up successful! Sending OTP to:', email);
-        await apiPost('/api/otp/send', { email });
-        console.log('[SignIn] ✅ OTP sent! Check backend logs for the code.');
-        
+
+        console.log('[SignIn] ✅ Mock sign up successful! Moving to OTP screen...');
+
         // Navigate to OTP screen
         setIsLoading(false);
         router.push({
@@ -86,7 +82,7 @@ export default function SignInScreen() {
         // Sign in - no OTP needed
         console.log('[SignIn] Signing in:', email);
         await signInWithEmail(email, password);
-        
+
         console.log('[SignIn] ✅ Sign in successful! Redirecting to dashboard...');
         setIsLoading(false);
         // Navigation will be handled by the auth context

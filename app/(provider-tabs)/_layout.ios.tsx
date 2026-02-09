@@ -9,9 +9,9 @@ export default function ProviderTabLayout() {
         <Icon sf="square.grid.2x2.fill" drawable="dashboard" />
         <Label>Dashboard</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger key="calendar" name="calendar">
-        <Icon sf="calendar" drawable="calendar-today" />
-        <Label>Calendar</Label>
+      <NativeTabs.Trigger key="bookings" name="bookings">
+        <Icon sf="calendar" drawable="event" />
+        <Label>Bookings</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger key="post" name="post">
         <Icon sf="plus.circle.fill" drawable="add-circle" />

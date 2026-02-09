@@ -7,12 +7,11 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import * as ImagePicker from 'expo-image-picker';
 import { useAuth } from '@/contexts/AuthContext';
-import { authenticatedPost, BACKEND_URL, getBearerToken } from '@/utils/api';
 
 export default function ProviderVerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { completeOnboarding, refreshUser } = useAuth();
+  const { completeOnboarding } = useAuth();
   
   const providerName = params.name as string;
   const businessName = params.businessName as string;
@@ -63,9 +62,9 @@ export default function ProviderVerificationScreen() {
     setIsUploading(true);
 
     try {
-      // First, complete provider onboarding
+      // UI mock only: simulate upload + verification flow.
       const serviceAddress = `${streetAddress}, ${stateProvince}, ${zipCode}, ${country}`;
-      await authenticatedPost('/api/onboarding/provider', {
+      console.log('[ProviderVerification] Mock payload:', {
         name: providerName,
         businessName,
         serviceAddress,
@@ -77,44 +76,10 @@ export default function ProviderVerificationScreen() {
         zipCode,
         serviceProvisionMethod,
       });
-
-      // Then upload ID document
-      const formData = new FormData();
-      const filename = idImage.split('/').pop() || 'id-document.jpg';
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-
-      formData.append('idDocument', {
-        uri: idImage,
-        name: filename,
-        type,
-      } as any);
-
-      // Get auth token for upload
-      const token = await getBearerToken();
-      if (!token) {
-        throw new Error('Authentication required');
-      }
-
-      // Upload ID using fetch with multipart/form-data
-      const response = await fetch(`${BACKEND_URL}/api/onboarding/provider/id-upload`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to upload ID document: ${errorText}`);
-      }
+      await new Promise((resolve) => setTimeout(resolve, 1100));
 
       console.log('[ProviderVerification] ✅ Upload complete! Redirecting to dashboard...');
-      
-      // Refresh user to update onboarding status
-      await refreshUser();
+
       await completeOnboarding();
       
       setIsUploading(false);
@@ -134,9 +99,9 @@ export default function ProviderVerificationScreen() {
     setIsCompleting(true);
 
     try {
-      // Complete provider onboarding without ID
+      // UI mock only: simulate onboarding completion without ID upload.
       const serviceAddress = `${streetAddress}, ${stateProvince}, ${zipCode}, ${country}`;
-      await authenticatedPost('/api/onboarding/provider', {
+      console.log('[ProviderVerification] Mock payload:', {
         name: providerName,
         businessName,
         serviceAddress,
@@ -148,11 +113,10 @@ export default function ProviderVerificationScreen() {
         zipCode,
         serviceProvisionMethod,
       });
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
       console.log('[ProviderVerification] ✅ Onboarding complete! Redirecting to dashboard...');
-      
-      // Refresh user to update onboarding status
-      await refreshUser();
+
       await completeOnboarding();
       
       setIsCompleting(false);

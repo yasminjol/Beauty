@@ -13,10 +13,10 @@ export default function ProviderTabLayout() {
       label: 'Dashboard',
     },
     {
-      name: 'calendar',
-      route: '/(provider-tabs)/calendar',
-      icon: 'calendar-today',
-      label: 'Calendar',
+      name: 'bookings',
+      route: '/(provider-tabs)/bookings',
+      icon: 'event',
+      label: 'Bookings',
     },
     {
       name: 'post',
@@ -53,7 +53,7 @@ export default function ProviderTabLayout() {
         }}
       >
         <Stack.Screen key="dashboard" name="dashboard" />
-        <Stack.Screen key="calendar" name="calendar" />
+        <Stack.Screen key="bookings" name="bookings" />
         <Stack.Screen key="post" name="post" />
         <Stack.Screen key="services" name="services" />
         <Stack.Screen key="subscription" name="subscription" />
