@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
+import { useMessages } from '@/contexts/MessagesContext';
 
 const SERVICE_PRICE_MAP: Record<string, number> = {
   'Box Braids': 180,
@@ -40,6 +41,7 @@ const getStatusTheme = (status: string) => {
 
 export default function AppointmentDetailsScreen() {
   const router = useRouter();
+  const { ensureConversation } = useMessages();
   const params = useLocalSearchParams();
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -94,6 +96,25 @@ export default function AppointmentDetailsScreen() {
     .toUpperCase();
 
   const handleAction = (label: string) => {
+    if (label === 'Message Client') {
+      const conversationId = ensureConversation({
+        providerId: 'provider-glow-house',
+        providerName: 'Yasmine N.',
+        providerBusiness: 'Glow House Studio',
+        providerLocation: 'Oakland, CA',
+        clientName: client,
+        clientLocation: 'Client location',
+      });
+
+      router.push({
+        pathname: '/chat-thread',
+        params: {
+          conversationId,
+        },
+      } as never);
+      return;
+    }
+
     setActionMessage(`${label} (mock)`);
     setTimeout(() => setActionMessage(null), 2000);
   };

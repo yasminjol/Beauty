@@ -23,12 +23,15 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Href } from 'expo-router';
 
 const { width: screenWidth } = Dimensions.get('window');
+const ACTIVE_TAB_COLOR = ewajiColors.primary;
+const INACTIVE_TAB_COLOR = '#9FA3AF';
 
 export interface TabBarItem {
   name: string;
   route: Href;
   icon: keyof typeof MaterialIcons.glyphMap;
   label: string;
+  badgeCount?: number;
 }
 
 interface FloatingTabBarProps {
@@ -57,13 +60,15 @@ export default function FloatingTabBar({
 
     tabs.forEach((tab, index) => {
       let score = 0;
+      const tabRoute =
+        typeof tab.route === 'string' ? tab.route : tab.route.pathname;
 
       // Exact route match gets highest score
-      if (pathname === tab.route) {
+      if (pathname === tabRoute) {
         score = 100;
       }
       // Check if pathname starts with tab route (for nested routes)
-      else if (pathname.startsWith(tab.route as string)) {
+      else if (pathname.startsWith(tabRoute)) {
         score = 80;
       }
       // Check if pathname contains the tab name
@@ -71,7 +76,7 @@ export default function FloatingTabBar({
         score = 60;
       }
       // Check for partial matches in the route
-      else if (tab.route.includes('/(tabs)/') && pathname.includes(tab.route.split('/(tabs)/')[1])) {
+      else if (tabRoute.includes('/(tabs)/') && pathname.includes(tabRoute.split('/(tabs)/')[1])) {
         score = 40;
       }
 
@@ -173,9 +178,10 @@ export default function FloatingTabBar({
           <View style={styles.tabsContainer}>
             {tabs.map((tab, index) => {
               const isActive = activeTabIndex === index;
+              const badgeCount = tab.badgeCount ?? 0;
+              const showBadge = badgeCount > 0;
 
               return (
-                <React.Fragment key={index}>
                 <TouchableOpacity
                   key={index} // Use index as key
                   style={styles.tab}
@@ -183,24 +189,30 @@ export default function FloatingTabBar({
                   activeOpacity={0.7}
                 >
                   <View key={index} style={styles.tabContent}>
-                    <IconSymbol
-                      android_material_icon_name={tab.icon}
-                      ios_icon_name={tab.icon}
-                      size={24}
-                      color={isActive ? ewajiColors.primary : ewajiColors.textSecondary}
-                    />
+                    <View style={styles.iconWrap}>
+                      <IconSymbol
+                        android_material_icon_name={tab.icon}
+                        ios_icon_name={tab.icon}
+                        size={24}
+                        color={isActive ? ACTIVE_TAB_COLOR : INACTIVE_TAB_COLOR}
+                      />
+                      {showBadge ? (
+                        <View style={styles.badge}>
+                          <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+                        </View>
+                      ) : null}
+                    </View>
                     <Text
                       style={[
                         styles.tabLabel,
-                        { color: ewajiColors.textSecondary },
-                        isActive && { color: ewajiColors.primary, fontWeight: '600' },
+                        { color: INACTIVE_TAB_COLOR },
+                        isActive && { color: ACTIVE_TAB_COLOR, fontWeight: '600' },
                       ]}
                     >
                       {tab.label}
                     </Text>
                   </View>
                 </TouchableOpacity>
-                </React.Fragment>
               );
             })}
           </View>
@@ -257,6 +269,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
+  },
+  iconWrap: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -12,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    paddingHorizontal: 4,
+    backgroundColor: ewajiColors.primary,
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    lineHeight: 11,
   },
   tabLabel: {
     fontSize: 9,

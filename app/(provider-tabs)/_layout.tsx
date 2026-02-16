@@ -1,9 +1,12 @@
 
 import React from 'react';
-import { Stack } from 'expo-router';
+import { Href, Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { useMessages } from '@/contexts/MessagesContext';
 
 export default function ProviderTabLayout() {
+  const { totalUnreadCount } = useMessages();
+
   // Provider tabs configuration
   const tabs: TabBarItem[] = [
     {
@@ -19,10 +22,11 @@ export default function ProviderTabLayout() {
       label: 'Bookings',
     },
     {
-      name: 'post',
-      route: '/(provider-tabs)/post',
-      icon: 'add-circle',
-      label: 'Post',
+      name: 'messages',
+      route: '/(provider-tabs)/messages',
+      icon: 'chat',
+      label: 'Messages',
+      badgeCount: totalUnreadCount,
     },
     {
       name: 'services',
@@ -31,16 +35,10 @@ export default function ProviderTabLayout() {
       label: 'Services',
     },
     {
-      name: 'subscription',
-      route: '/(provider-tabs)/subscription',
-      icon: 'card-membership',
-      label: 'Plan',
-    },
-    {
-      name: 'provider-profile',
-      route: '/(provider-tabs)/provider-profile',
+      name: 'me-home',
+      route: '/(provider-tabs)/me-home' as Href,
       icon: 'person',
-      label: 'Profile',
+      label: 'Me',
     },
   ];
 
@@ -54,8 +52,10 @@ export default function ProviderTabLayout() {
       >
         <Stack.Screen key="dashboard" name="dashboard" />
         <Stack.Screen key="bookings" name="bookings" />
+        <Stack.Screen key="messages" name="messages" />
         <Stack.Screen key="post" name="post" />
         <Stack.Screen key="services" name="services" />
+        <Stack.Screen key="me-home" name="me-home" />
         <Stack.Screen key="subscription" name="subscription" />
         <Stack.Screen key="provider-profile" name="provider-profile" />
       </Stack>

@@ -17,6 +17,11 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ClientBookingsProvider } from "@/contexts/ClientBookingsContext";
+import { ReviewsProvider } from "@/contexts/ReviewsContext";
+import { NotificationsProvider } from "@/contexts/NotificationsContext";
+import { MessagesProvider } from "@/contexts/MessagesContext";
+import { ClientProfileProvider } from "@/contexts/ClientProfileContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -61,7 +66,7 @@ function RootLayoutNav() {
       if (inAuthGroup || inOnboardingGroup) {
         console.log('Redirecting to dashboard - user authenticated and onboarded');
         if (user.role === 'client') {
-          router.replace('/(tabs)/(home)/');
+          router.replace('/(tabs)/(home)' as never);
         } else if (user.role === 'provider') {
           router.replace('/(provider-tabs)/dashboard');
         } else {
@@ -84,6 +89,17 @@ function RootLayoutNav() {
       <Stack.Screen name="onboarding/provider-verification" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(provider-tabs)" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="booking-details" />
+      <Stack.Screen name="appointment-details" />
+      <Stack.Screen name="search-service-details" />
+      <Stack.Screen name="search-provider-profile" />
+      <Stack.Screen name="search-category-results" />
+      <Stack.Screen name="search-booking" />
+      <Stack.Screen name="reschedule-booking" />
+      <Stack.Screen name="leave-review" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="chat-thread" />
     </Stack>
   );
 }
@@ -146,12 +162,22 @@ export default function RootLayout() {
         value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
       >
         <AuthProvider>
-          <WidgetProvider>
-            <GestureHandlerRootView>
-              <RootLayoutNav />
-              <SystemBars style={"auto"} />
-            </GestureHandlerRootView>
-          </WidgetProvider>
+          <ClientProfileProvider>
+            <ClientBookingsProvider>
+              <NotificationsProvider>
+                <MessagesProvider>
+                  <ReviewsProvider>
+                    <WidgetProvider>
+                      <GestureHandlerRootView>
+                        <RootLayoutNav />
+                        <SystemBars style={"auto"} />
+                      </GestureHandlerRootView>
+                    </WidgetProvider>
+                  </ReviewsProvider>
+                </MessagesProvider>
+              </NotificationsProvider>
+            </ClientBookingsProvider>
+          </ClientProfileProvider>
         </AuthProvider>
       </ThemeProvider>
     </>

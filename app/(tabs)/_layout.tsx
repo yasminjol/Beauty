@@ -2,13 +2,16 @@
 import React from 'react';
 import { Stack } from 'expo-router';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
+import { useMessages } from '@/contexts/MessagesContext';
 
 export default function TabLayout() {
+  const { totalUnreadCount } = useMessages();
+
   // Client tabs configuration
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
-      route: '/(tabs)/(home)/',
+      route: '/(tabs)/(home)',
       icon: 'home',
       label: 'Home',
     },
@@ -25,10 +28,11 @@ export default function TabLayout() {
       label: 'Bookings',
     },
     {
-      name: 'notifications',
-      route: '/(tabs)/notifications',
-      icon: 'notifications',
-      label: 'Alerts',
+      name: 'messages',
+      route: '/(tabs)/messages',
+      icon: 'chat',
+      label: 'Messages',
+      badgeCount: totalUnreadCount,
     },
     {
       name: 'profile',
@@ -49,7 +53,7 @@ export default function TabLayout() {
         <Stack.Screen key="home" name="(home)" />
         <Stack.Screen key="search" name="search" />
         <Stack.Screen key="bookings" name="bookings" />
-        <Stack.Screen key="notifications" name="notifications" />
+        <Stack.Screen key="messages" name="messages" />
         <Stack.Screen key="profile" name="profile" />
       </Stack>
       <FloatingTabBar tabs={tabs} />
